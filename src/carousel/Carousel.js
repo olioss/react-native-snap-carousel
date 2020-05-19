@@ -67,7 +67,9 @@ export default class Carousel extends Component {
         useScrollView: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
         vertical: PropTypes.bool,
         onBeforeSnapToItem: PropTypes.func,
-        onSnapToItem: PropTypes.func
+        onSnapToItem: PropTypes.func,
+        backToFirst: PropTypes.bool
+
     };
 
     static defaultProps = {
@@ -99,7 +101,9 @@ export default class Carousel extends Component {
         shouldOptimizeUpdates: true,
         swipeThreshold: 20,
         useScrollView: !AnimatedFlatList,
-        vertical: false
+        vertical: false,
+        backToFirst: false
+
     }
 
     constructor (props) {
@@ -1116,6 +1120,11 @@ export default class Carousel extends Component {
         this.pauseAutoPlay();
     }
 
+    _enableBackToFirst () {
+        const { backToFirst } = this.props;
+        return backToFirst
+    }
+
     snapToItem (index, animated = true, fireCallback = true) {
         if (!index || index < 0) {
             index = 0;
@@ -1135,10 +1144,14 @@ export default class Carousel extends Component {
 
         let newIndex = this._activeItem + 1;
         if (newIndex > itemsLength - 1) {
-            if (!this._enableLoop()) {
+            newIndex = 0;
+            if (this._autoplay && this._enableBackToFirst()) {
+                this._snapToItem(newIndex, animated, fireCallback);
                 return;
             }
-            newIndex = 0;
+            else if (!this._enableLoop()) {
+                return;
+            }
         }
         this._snapToItem(newIndex, animated, fireCallback);
     }
